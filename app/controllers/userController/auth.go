@@ -1,16 +1,14 @@
 package userController
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
+	"time"
 	"wejh-go/app/apiException"
+	"wejh-go/app/models"
 	"wejh-go/app/services/sessionServices"
-	"wejh-go/app/services/userServices"
 	"wejh-go/app/utils"
 	"wejh-go/config/wechat"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 type autoLoginForm struct {
@@ -23,6 +21,10 @@ type passwordLoginForm struct {
 	LoginType string `json:"type"`
 }
 
+
+var user models.User
+
+
 func AuthByPassword(c *gin.Context) {
 	var postForm passwordLoginForm
 	err := c.ShouldBindJSON(&postForm)
@@ -31,25 +33,23 @@ func AuthByPassword(c *gin.Context) {
 		_ = c.AbortWithError(200, apiException.ParamError)
 		return
 	}
-	user, err := userServices.GetUserByUsername(postForm.Username)
-	if err == gorm.ErrRecordNotFound {
-		_ = c.AbortWithError(200, apiException.UserNotFind)
-		return
-	}
-	if err != nil {
-		_ = c.AbortWithError(200, apiException.ServerError)
-		return
+	user = models.User{
+		ID:           1,
+		Username:     "wejh",
+		JHPassword:     "123456",
+		StudentID:    "202103150901",
+		PhoneNum:     "12345678901",
+		Type: 3,
+		LibPassword: "123456",
+		ZFPassword: "123456",
+		OauthPassword: "123456",
+		YxyUid: "123456",
+		UnionID: "123456",
+		CreateTime: time.Date(2024, 3, 8, 0, 0, 0, 0, time.UTC),
+
 	}
 
-	h := sha256.New()
-	h.Write([]byte(postForm.Password))
-	pass := hex.EncodeToString(h.Sum(nil))
-	if user.JHPassword != pass {
-		_ = c.AbortWithError(200, apiException.NoThatPasswordOrWrong)
-		return
-	}
-
-	err = sessionServices.SetUserSession(c, user)
+	err = sessionServices.SetUserSession(c, &user)
 	if err != nil {
 		_ = c.AbortWithError(200, apiException.ServerError)
 		return
@@ -109,14 +109,28 @@ func WeChatLogin(c *gin.Context) {
 		_ = c.AbortWithError(200, apiException.OpenIDError)
 		return
 	}
-
-	user := userServices.GetUserByWechatOpenID(session.OpenID)
-	if user == nil {
+	var user models.User
+	if session.OpenID != "" {
+		user = models.User{
+			ID:           1,
+			Username:     "wejh",
+			JHPassword:     "123456",
+			StudentID:    "202103150901",
+			PhoneNum:     "12345678901",
+			Type: 3,
+			LibPassword: "123456",
+			ZFPassword: "123456",
+			OauthPassword: "123456",
+			YxyUid: "123456",
+			UnionID: "123456",
+			CreateTime: time.Date(2024, 3, 8, 0, 0, 0, 0, time.UTC),
+	
+		}
+	} else {
 		_ = c.AbortWithError(200, apiException.UserNotFind)
 		return
 	}
-
-	err = sessionServices.SetUserSession(c, user)
+	err = sessionServices.SetUserSession(c, &user)
 	if err != nil {
 		_ = c.AbortWithError(200, apiException.ServerError)
 		return

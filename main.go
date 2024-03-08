@@ -5,13 +5,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 	"wejh-go/app/midwares"
-	"wejh-go/config/database"
 	"wejh-go/config/router"
 	"wejh-go/config/session"
 )
 
 func main() {
-	database.Init()
 	r := gin.Default()
 	r.Use(cors.Default())
 	r.Use(midwares.ErrHandler())
